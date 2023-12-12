@@ -29,24 +29,26 @@ public class TaskControllerTest {
 
     @Test
     public void testCreateTask() throws Exception {
+
+        LocalDate futureDate = LocalDate.now().plusDays(1);
         TaskDTO taskDTO = new TaskDTO();
         taskDTO.setTitle("Sample Task");
         taskDTO.setDescription("Task description");
         taskDTO.setStatus(StatusConstants.IN_PROGRESS);
         taskDTO.setPriority(1);
-        taskDTO.setDueDate(LocalDate.now().plusDays(1));  // Set a future date
+        taskDTO.setDueDate(futureDate);
         when(taskService.createTask(any(), any())).thenReturn(taskDTO);
 
         // Sending a POST request to create a task
-        mockMvc.perform(post("/tasks")
+        mockMvc.perform(post("/api/v1/tasks/project/1")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"title\": \"Sample Task\", \"description\": \"Task description\", \"status\": \"In Progress\", \"priority\": 1, \"dueDate\": \"2023-12-13\"}")) // Adjust the content accordingly
+                        .content("{\"title\": \"Sample Task\", \"description\": \"Task description\", \"status\": \"In Progress\", \"priority\": 1, \"dueDate\": \" + futureDate + \"}"))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.title").value("Sample Task"))
                 .andExpect(jsonPath("$.description").value("Task description"))
                 .andExpect(jsonPath("$.priority").value(1))
                 .andExpect(jsonPath("$.status").value(StatusConstants.IN_PROGRESS))
-                .andExpect(jsonPath("$.dueDate").value("2023-12-13"));
+                .andExpect(jsonPath("$.dueDate").value(futureDate));
 
     }
 
@@ -57,7 +59,7 @@ public class TaskControllerTest {
         when(taskService.updateTask(eq(1L), any(TaskDTO.class))).thenReturn(updatedTaskDTO);
 
         // Sending a PUT request to update a task
-        mockMvc.perform(put("/tasks/1")
+        mockMvc.perform(put("/api/v1/tasks/1")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"name\": \"Updated Task Name\"}"))  // Adjust the content accordingly
                 .andExpect(status().isOk())
@@ -66,37 +68,30 @@ public class TaskControllerTest {
 
     @Test
     public void testDeleteTask() throws Exception {
-        // No need to mock the service response for a delete operation
-
-        // Sending a DELETE request to delete a task
-        mockMvc.perform(delete("/tasks/1"))
+        mockMvc.perform(delete("/api/v1/tasks/1"))
                 .andExpect(status().isOk())
                 .andExpect(content().string("Task deleted successfully"));
     }
 
     @Test
     public void testGetTaskById() throws Exception {
-        // Mocking the service response
         TaskDTO taskDTO = new TaskDTO();
         taskDTO.setTaskId(1l);
         taskDTO.setTitle("Some Title");
         when(taskService.getTaskById(eq(1L))).thenReturn(taskDTO);
 
-        // Sending a GET request to get a task by ID
-        mockMvc.perform(get("/tasks/1"))
+        mockMvc.perform(get("/api/v1/tasks/1"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").exists());  // Adjust the expected values accordingly
+                .andExpect(jsonPath("$.taskId").exists());
     }
 
     @Test
     public void testGetAllTasks() throws Exception {
-        // Mocking the service response
         List<TaskDTO> taskDTOList = Arrays.asList(new TaskDTO(), new TaskDTO());
         when(taskService.getAllTasks(anyInt(), anyInt(), anyString())).thenReturn(taskDTOList);
 
-        // Sending a GET request to get all tasks
-        mockMvc.perform(get("/tasks"))
+        mockMvc.perform(get("/api/v1/tasks"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(2)));  // Adjust the expected values accordingly
+                .andExpect(jsonPath("$", hasSize(2)));
     }
 }

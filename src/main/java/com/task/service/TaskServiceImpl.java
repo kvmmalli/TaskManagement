@@ -32,6 +32,12 @@ public class TaskServiceImpl implements TaskService {
     @Autowired
     private TaskRepository taskRepository;
 
+    /**
+     * Create a new task for a specific project.
+     * @param projectId ID of the project.
+     * @param taskDTO Task data.
+     * @return TaskDTO containing the created task.
+     */
     @Override
     public TaskDTO createTask(Long projectId, TaskDTO taskDTO) {
         Task task = convertToTask(taskDTO);
@@ -41,10 +47,17 @@ public class TaskServiceImpl implements TaskService {
         return convertToTaskDTO(taskRepository.save(task));
     }
 
+    /**
+     * Update a task by its ID.
+     * @param taskId The ID of the task to update.
+     * @param updatedTask The updated task data.
+     * @return TaskDTO containing the updated task.
+     * @throws TaskValidationException if the task status is not "In Progress" or "Pending".
+     * @throws TaskNotFoundException  if the task is not found.
+     */
     @Override
     public TaskDTO updateTask(Long taskId, TaskDTO updatedTask) {
         Optional<Task> existingTaskOptional = taskRepository.findById(taskId);
-
 
         if (existingTaskOptional.isPresent()) {
             Task existingTask = existingTaskOptional.get();
@@ -53,7 +66,6 @@ public class TaskServiceImpl implements TaskService {
                 Task task = convertToTask(updatedTask);
                 // Save the updated task
                 return convertToTaskDTO(taskRepository.save(task));
-
             } else {
                 throw new TaskValidationException("Cannot delete task with status: " + existingTask.getStatus());
             }
@@ -62,6 +74,12 @@ public class TaskServiceImpl implements TaskService {
         }
     }
 
+    /**
+     * Delete a task by its ID.
+     * @param taskId The ID of the task to delete.
+     * @throws TaskValidationException if the task status is not "In Progress" or "Pending".
+     * @throws TaskNotFoundException  if the task is not found.
+     */
     @Override
     public void deleteTask(Long taskId) {
         Optional<Task> taskOptional = taskRepository.findById(taskId);
@@ -78,6 +96,12 @@ public class TaskServiceImpl implements TaskService {
         }
     }
 
+    /**
+     * Retrieve a task by its ID.
+     * @param taskId The ID of the task to retrieve.
+     * @return TaskDTO containing the retrieved task.
+     * @throws TaskNotFoundException if the task is not found.
+     */
     @Override
     public TaskDTO getTaskById(Long taskId) {
         Task task = taskRepository.findById(taskId)
@@ -86,6 +110,13 @@ public class TaskServiceImpl implements TaskService {
         return convertToTaskDTO(task);
     }
 
+    /**
+     * Retrieve a paginated list of tasks.
+     * @param page Page number.
+     * @param size Number of tasks per page.
+     * @param sortBy Sorting criteria (e.g., "dueDate").
+     * @return List of TaskDTOs.
+     */
     @Override
     public List<TaskDTO> getAllTasks(int page, int size, String sortBy) {
         Page<Task> taskPage = taskRepository.findAll(PageRequest.of(page, size, Sort.by(sortBy)));
@@ -95,11 +126,16 @@ public class TaskServiceImpl implements TaskService {
                 .collect(Collectors.toList());
     }
 
-    @Override
+    /**
+     * Update the status of multiple tasks in a batch.
+     * @param taskIds List of task IDs to update.
+     * @param status status for the tasks.
+     */
     @Transactional
-    public void updateBatchTaskStatus(List<Long> taskIds, String newStatus) {
+    @Override
+    public void updateBatchTaskStatus(List<Long> taskIds, String status) {
         List<Task> tasks = taskRepository.findAllById(taskIds);
-        tasks.forEach(task -> task.setStatus(newStatus));
+        tasks.forEach(task -> task.setStatus(status));
         taskRepository.saveAll(tasks);
     }
 
@@ -110,18 +146,42 @@ public class TaskServiceImpl implements TaskService {
         return overdueTasks.stream().map(overDueTask -> convertToTaskDTO(overDueTask)).collect(Collectors.toList());
     }
 
+    /**
+     * Retrieve all tasks associated with a specific project.
+     * @param projectId ID of the project.
+     * @return List of TaskDTOs representing tasks associated with the project.
+     */
     @Override
     public List<TaskDTO> getTasksByProjectId(Long projectId) {
+        System.out.println("getTasksByProjectId projectId : "+projectId);
         List<Task> projectTasks = taskRepository.findByProjectId(projectId);
-        return projectTasks.stream().map(overDueTask -> convertToTaskDTO(overDueTask)).collect(Collectors.toList());
-    }
-    public List<TaskDTO> getTasksByProjectIdAndStatus(Long projectId, String status) {
-        List<Task> projectTasks = taskRepository.findByProjectIdAndStatus(projectId, status);
+        projectTasks.forEach(x-> System.out.println(x.getTitle()));
         return projectTasks.stream().map(overDueTask -> convertToTaskDTO(overDueTask)).collect(Collectors.toList());
     }
 
+    /**
+     * Retrieve tasks associated with a specific project and matching a given status.
+     * @param projectId ID of the project.
+     * @param status Status to filter tasks.
+     * @return List of TaskDTOs representing tasks matching the project and status.
+     */
+    public List<TaskDTO> getTasksByProjectIdAndStatus(Long projectId, String status) {
+        System.out.println("getTasksByProjectIdAndStatus projectId : "+projectId);
+        List<Task> projectTasks = taskRepository.findByProjectIdAndStatus(projectId, status);
+        projectTasks.forEach(x-> System.out.println(x.getTitle()));
+        return projectTasks.stream().map(overDueTask -> convertToTaskDTO(overDueTask)).collect(Collectors.toList());
+    }
+
+    /**
+     * Retrieve tasks associated with a specific project that are completed after a certain due date.
+     * @param projectId ID of the project.
+     * @param dueDate Due date to filter completed tasks.
+     * @return List of TaskDTOs representing completed tasks after the specified due date.
+     */
     public List<TaskDTO> getCompletedTasksAfterEstimatedTime(Long projectId, LocalDate dueDate) {
+        System.out.println("getCompletedTasksAfterEstimatedTime projectId : "+projectId);
         List<Task> projectTasks = taskRepository.findByProjectIdAndStatusAndDueDateAfter(projectId, COMPLETED, dueDate);
+        projectTasks.forEach(x-> System.out.println(x.getTitle()));
         return projectTasks.stream().map(overDueTask -> convertToTaskDTO(overDueTask)).collect(Collectors.toList());
     }
 }
