@@ -2,28 +2,17 @@ package com.task.util;
 
 import com.task.dto.TaskDTO;
 import com.task.entity.Task;
+import org.mapstruct.factory.Mappers;
 
 public class ConversionUtils {
 
+    private static final TaskMapper TASK_MAPPER = Mappers.getMapper(TaskMapper.class);
+
     public static TaskDTO convertToTaskDTO(Task task) {
-        TaskDTO taskDTO = new TaskDTO();
-        taskDTO.setTaskId(task.getId());
-        taskDTO.setProjectName(task.getProject().getName());
-        taskDTO.setTitle(task.getTitle());
-        taskDTO.setDescription(task.getDescription());
-        taskDTO.setStatus(task.getStatus());
-        taskDTO.setDueDate(task.getDueDate());
-        taskDTO.setPriority(task.getPriority());
-        return taskDTO;
+        return TASK_MAPPER.taskToTaskDTO(task);
     }
 
     public static Task convertToTask(TaskDTO taskDTO) {
-        Task task = new Task();
-        task.setTitle(taskDTO.getTitle());
-        task.setDescription(taskDTO.getDescription());
-        task.setStatus(taskDTO.getStatus());
-        task.setDueDate(taskDTO.getDueDate());
-        task.setPriority(taskDTO.getPriority());
-        return task;
+        return TASK_MAPPER.taskDTOToTask(taskDTO);
     }
 }

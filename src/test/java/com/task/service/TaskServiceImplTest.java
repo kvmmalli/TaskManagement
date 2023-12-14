@@ -12,6 +12,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Optional;
 
+import static com.task.constants.StatusConstants.IN_PROGRESS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
@@ -74,6 +75,22 @@ public class TaskServiceImplTest {
 
         assertNotNull(result);
         assertEquals("Updated Task", result.getTitle());
+    }
+
+    @Test
+    public void testDeleteTaskSuccess() {
+        Long taskId = 1L;
+        Task task = new Task();
+        task.setId(taskId);
+        task.setStatus(IN_PROGRESS);
+
+        when(taskRepository.findById(taskId)).thenReturn(Optional.of(task));
+
+        // Invoke the method
+        taskService.deleteTask(taskId);
+
+        // Verify that the taskRepository.deleteById was called
+        Mockito.verify(taskRepository, times(1)).deleteById(taskId);
     }
 }
 

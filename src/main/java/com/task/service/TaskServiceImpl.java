@@ -142,8 +142,10 @@ public class TaskServiceImpl implements TaskService {
     @Override
     public List<TaskDTO> getOverdueTasks() {
         LocalDate currentDate = LocalDate.now();
-        List<Task> overdueTasks = taskRepository.findByDueDateBeforeAndStatusNot(currentDate, COMPLETED);
-        return overdueTasks.stream().map(overDueTask -> convertToTaskDTO(overDueTask)).collect(Collectors.toList());
+        List<Task> overdueTasks = taskRepository.findByDueDateBeforeAndStatusNotEqualCompleted(currentDate);
+        return overdueTasks.stream()
+                .map(overDueTask -> convertToTaskDTO(overDueTask))
+                .collect(Collectors.toList());
     }
 
     /**
@@ -153,10 +155,10 @@ public class TaskServiceImpl implements TaskService {
      */
     @Override
     public List<TaskDTO> getTasksByProjectId(Long projectId) {
-        System.out.println("getTasksByProjectId projectId : "+projectId);
         List<Task> projectTasks = taskRepository.findByProjectId(projectId);
-        projectTasks.forEach(x-> System.out.println(x.getTitle()));
-        return projectTasks.stream().map(overDueTask -> convertToTaskDTO(overDueTask)).collect(Collectors.toList());
+        return projectTasks.stream()
+                .map(overDueTask -> convertToTaskDTO(overDueTask))
+                .collect(Collectors.toList());
     }
 
     /**
@@ -166,10 +168,10 @@ public class TaskServiceImpl implements TaskService {
      * @return List of TaskDTOs representing tasks matching the project and status.
      */
     public List<TaskDTO> getTasksByProjectIdAndStatus(Long projectId, String status) {
-        System.out.println("getTasksByProjectIdAndStatus projectId : "+projectId);
         List<Task> projectTasks = taskRepository.findByProjectIdAndStatus(projectId, status);
-        projectTasks.forEach(x-> System.out.println(x.getTitle()));
-        return projectTasks.stream().map(overDueTask -> convertToTaskDTO(overDueTask)).collect(Collectors.toList());
+        return projectTasks.stream()
+                .map(overDueTask -> convertToTaskDTO(overDueTask))
+                .collect(Collectors.toList());
     }
 
     /**
@@ -179,10 +181,10 @@ public class TaskServiceImpl implements TaskService {
      * @return List of TaskDTOs representing completed tasks after the specified due date.
      */
     public List<TaskDTO> getCompletedTasksAfterEstimatedTime(Long projectId, LocalDate dueDate) {
-        System.out.println("getCompletedTasksAfterEstimatedTime projectId : "+projectId);
         List<Task> projectTasks = taskRepository.findByProjectIdAndStatusAndDueDateAfter(projectId, COMPLETED, dueDate);
-        projectTasks.forEach(x-> System.out.println(x.getTitle()));
-        return projectTasks.stream().map(overDueTask -> convertToTaskDTO(overDueTask)).collect(Collectors.toList());
+        return projectTasks.stream()
+                .map(overDueTask -> convertToTaskDTO(overDueTask))
+                .collect(Collectors.toList());
     }
 }
 
